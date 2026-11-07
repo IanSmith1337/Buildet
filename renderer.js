@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+import {$} from "jquery";
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
