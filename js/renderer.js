@@ -6,6 +6,8 @@ const canvas = document.querySelector(".editor");
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
 
 const scene = new THREE.Scene();
+scene.background = new THREE.Color("#101010");
+
 const camera = new THREE.PerspectiveCamera(
 	85,
 	window.innerWidth / window.innerHeight,
@@ -15,17 +17,17 @@ const camera = new THREE.PerspectiveCamera(
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
-const billetGeo = new THREE.BoxGeometry(1, 1, 1);
+const billetGeo = new THREE.BoxGeometry(3, 1, 1);
 const billetMat = new THREE.MeshStandardMaterial({
-	color: 0xff0000,
+	color: "#ff0000",
 	roughness: 0.33,
 	metalness: 0.75,
 });
 const billet = new THREE.Mesh(billetGeo, billetMat);
 scene.add(billet);
 
-const editorSkyLightColor = 0xffffff;
-const editorGroundLightColor = 0x000000;
+const editorSkyLightColor = "#ffffff";
+const editorGroundLightColor = "#000000";
 const editorLightIntensity = 2;
 const editorLight = new THREE.HemisphereLight(
 	editorSkyLightColor,
@@ -34,14 +36,14 @@ const editorLight = new THREE.HemisphereLight(
 );
 scene.add(editorLight);
 
-const cameraLightColor = 0xffffff;
+const cameraLightColor = "#ffffff";
 const cameraLightIntensity = 0.25;
 const cameraLight = new THREE.DirectionalLight(
 	cameraLightColor,
 	cameraLightIntensity,
 );
 cameraLight.position.set(
-	camera.position.x - 0.25,
+	camera.position.x,
 	camera.position.y,
 	camera.position.z,
 );
