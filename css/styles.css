@@ -11979,5 +11979,16 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+.editor {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
 /*# sourceMappingURL=styles.css.map */
