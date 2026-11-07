@@ -10,7 +10,7 @@ const camera = new THREE.PerspectiveCamera(
 	85,
 	window.innerWidth / window.innerHeight,
 	0.1,
-	25,
+	50,
 );
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -35,15 +35,21 @@ const editorLight = new THREE.HemisphereLight(
 scene.add(editorLight);
 
 const cameraLightColor = 0xffffff;
-const cameraLightIntensity = 1;
+const cameraLightIntensity = 0.25;
 const cameraLight = new THREE.DirectionalLight(
 	cameraLightColor,
 	cameraLightIntensity,
 );
-scene.add(cameraLight);
+cameraLight.position.set(
+	camera.position.x - 0.25,
+	camera.position.y,
+	camera.position.z,
+);
+camera.add(cameraLight);
+scene.add(camera);
 
-const gridSize = 1000;
-const gridDivisions = 1000;
+const gridSize = 100;
+const gridDivisions = 100;
 const grid = new THREE.GridHelper(gridSize, gridDivisions);
 scene.add(grid);
 
@@ -72,11 +78,6 @@ function animate(time) {
 		camera.updateProjectionMatrix();
 	}
 	controls.update();
-	cameraLight.position.set(
-		-camera.position.x,
-		camera.position.y,
-		camera.position.z,
-	);
 	renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
