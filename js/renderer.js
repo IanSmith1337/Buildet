@@ -5,7 +5,7 @@ import {$} from "jquery";
 var billetWidth = 1;
 var billetHeight = 1;
 var billetDepth = 1;
-var layers = 3;
+var layers = 10;
 
 const canvas = document.querySelector(".editor");
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
@@ -24,21 +24,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 
 const billetTextureCanvas = document.createElement("canvas").getContext("2d");
 document.body.appendChild(billetTextureCanvas.canvas);
-billetTextureCanvas.canvas.width = billetWidth * 256;
-billetTextureCanvas.canvas.height = billetHeight * 256;
-var currentPos = 0;
-for (let i = 0; i < layers; i++) {
-	billetTextureCanvas.fillStyle = i % 2 ? "#505050" : "#FFF";
-	console.log(billetTextureCanvas.fillStyle);
-	console.log(currentPos);
-	billetTextureCanvas.fillRect(
-		0,
-		currentPos,
-		billetTextureCanvas.canvas.width,
-		billetTextureCanvas.canvas.height / layers,
-	);
-	currentPos = (billetTextureCanvas.canvas.height / layers) * (i + 1);
-}
+updateTexture(billetTextureCanvas);
 const billetTexture = new THREE.CanvasTexture(billetTextureCanvas.canvas);
 
 const billetGeo = new THREE.BoxGeometry(billetWidth, billetHeight, billetDepth);
@@ -97,8 +83,24 @@ function resizeRenderer(renderer) {
 	return needResize;
 }
 
-function updateTexture() {
-	
+function updateTexture(textureCanvas) {
+	textureCanvas.canvas.width = billetWidth * 256;
+	textureCanvas.canvas.height = billetHeight * 256;
+	var currentPos = 0;
+	for (let i = 0; i < layers; i++) {
+		textureCanvas.fillStyle = i % 2 ? "#505050" : "#FFF";
+		console.log(textureCanvas.fillStyle);
+		console.log(currentPos);
+		textureCanvas.fillRect(
+			0,
+			currentPos,
+			textureCanvas.canvas.width,
+			textureCanvas.canvas.height / layers,
+		);
+		currentPos = (textureCanvas.canvas.height / layers) * (i + 1);
+	}
+
+	textureCanvas.needsUpdate = true;
 }
 
 function animate(time) {
@@ -107,7 +109,6 @@ function animate(time) {
 		camera.aspect = canvas.clientWidth / canvas.clientHeight;
 		camera.updateProjectionMatrix();
 	}
-
 
 	controls.update();
 	renderer.render(scene, camera);
