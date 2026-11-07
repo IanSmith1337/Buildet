@@ -27,8 +27,6 @@ scene.add(light);
 camera.position.z = 5;
 
 function animate(time) {
-	cube.rotation.x = time / 2000;
-	cube.rotation.y = time / 2000;
 	renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
