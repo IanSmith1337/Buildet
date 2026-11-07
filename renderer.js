@@ -10,19 +10,42 @@ const camera = new THREE.PerspectiveCamera(
 	85,
 	window.innerWidth / window.innerHeight,
 	0.1,
-	5,
+	25,
 );
 
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshPhongMaterial({color: 0xff0000});
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+const controls = new OrbitControls(camera, renderer.domElement);
 
-const color = 0xffffff;
-const intensity = 2;
-const light = new THREE.DirectionalLight(color, intensity);
-light.position.set(2, 2, -2);
-scene.add(light);
+const billetGeo = new THREE.BoxGeometry(1, 1, 1);
+const billetMat = new THREE.MeshStandardMaterial({
+	color: 0xff0000,
+	roughness: 0.33,
+	metalness: 0.75,
+});
+const billet = new THREE.Mesh(billetGeo, billetMat);
+scene.add(billet);
+
+const editorSkyLightColor = 0xffffff;
+const editorGroundLightColor = 0x000000;
+const editorLightIntensity = 2;
+const editorLight = new THREE.HemisphereLight(
+	editorSkyLightColor,
+	editorGroundLightColor,
+	editorLightIntensity,
+);
+scene.add(editorLight);
+
+const cameraLightColor = 0xffffff;
+const cameraLightIntensity = 1;
+const cameraLight = new THREE.DirectionalLight(
+	cameraLightColor,
+	cameraLightIntensity,
+);
+scene.add(cameraLight);
+
+const gridSize = 1000;
+const gridDivisions = 1000;
+const grid = new THREE.GridHelper(gridSize, gridDivisions);
+scene.add(grid);
 
 camera.position.z = 2;
 camera.position.x = 2;
@@ -48,6 +71,12 @@ function animate(time) {
 		camera.aspect = canvas.clientWidth / canvas.clientHeight;
 		camera.updateProjectionMatrix();
 	}
+	controls.update();
+	cameraLight.position.set(
+		-camera.position.x,
+		camera.position.y,
+		camera.position.z,
+	);
 	renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
