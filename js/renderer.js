@@ -2,6 +2,11 @@ import * as THREE from "three";
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {$} from "jquery";
 
+var billetWidth = 1;
+var billetHeight = 1;
+var billetDepth = 1;
+var layers = 3;
+
 const canvas = document.querySelector(".editor");
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
 
@@ -17,9 +22,28 @@ const camera = new THREE.PerspectiveCamera(
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
-const billetGeo = new THREE.BoxGeometry(3, 1, 1);
+const billetTextureCanvas = document.createElement("canvas").getContext("2d");
+document.body.appendChild(billetTextureCanvas.canvas);
+billetTextureCanvas.canvas.width = billetWidth * 256;
+billetTextureCanvas.canvas.height = billetHeight * 256;
+var currentPos = 0;
+for (let i = 0; i < layers; i++) {
+	billetTextureCanvas.fillStyle = i % 2 ? "#505050" : "#FFF";
+	console.log(billetTextureCanvas.fillStyle);
+	console.log(currentPos);
+	billetTextureCanvas.fillRect(
+		0,
+		currentPos,
+		billetTextureCanvas.canvas.width,
+		billetTextureCanvas.canvas.height / layers,
+	);
+	currentPos = (billetTextureCanvas.canvas.height / layers) * (i + 1);
+}
+const billetTexture = new THREE.CanvasTexture(billetTextureCanvas.canvas);
+
+const billetGeo = new THREE.BoxGeometry(billetWidth, billetHeight, billetDepth);
 const billetMat = new THREE.MeshStandardMaterial({
-	color: "#ff0000",
+	map: billetTexture,
 	roughness: 0.33,
 	metalness: 0.75,
 });
@@ -73,12 +97,18 @@ function resizeRenderer(renderer) {
 	return needResize;
 }
 
+function updateTexture() {
+	
+}
+
 function animate(time) {
 	if (resizeRenderer(renderer)) {
 		const canvas = renderer.domElement;
 		camera.aspect = canvas.clientWidth / canvas.clientHeight;
 		camera.updateProjectionMatrix();
 	}
+
+
 	controls.update();
 	renderer.render(scene, camera);
 }
