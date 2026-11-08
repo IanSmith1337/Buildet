@@ -10,6 +10,9 @@ var billetDepth = 2;
 var layers = 1;
 var firstLayerColor = "#000";
 var lastLayerColor = "#000";
+var clickNumber = 0;
+var startX = 0;
+var startY = 0;
 
 const canvas = document.querySelector(".editor");
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
@@ -185,7 +188,7 @@ function updateTopTexture(textureCanvas, depthCanvas, firstRun = false) {
 				layerIndex = layers - 1;
 			}
 
-			const pixelColor = layerIndex % 2 === 0 ? dark : light;
+			const pixelColor = layerIndex % 2 === 0 ? light : dark;
 
 			// 4. Overwrite the pixel data in memory with the Damascus colors
 			pixels[i] = pixelColor[0]; // Red
@@ -301,9 +304,83 @@ function handleDivot(event) {
 	updateTopTexture(billetTopTextureCanvas, depthCanvas, false);
 }
 
-window.makeCut = function makeCut() {
+window.makeDivot = function makeDivot() {
 	renderer.domElement.removeEventListener("click", handleDivot);
 	renderer.domElement.addEventListener("click", handleDivot);
+};
+
+function handleCut(event) {
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+	raycaster.setFromCamera(mouse, camera);
+	const intersects = raycaster.intersectObject(billet);
+
+	if (intersects.length > 0) {
+		const uv = intersects[0].uv;
+		const canvasX = uv.x * billetTopTextureCanvas.canvas.width;
+		const canvasY = (1 - uv.y) * billetTopTextureCanvas.canvas.height;
+
+		if (clickNumber === 0) {
+			startX = canvasX;
+			startY = canvasY;
+			clickNumber = 1;
+			console.log("Start point set. Click end point.");
+		} else {
+			renderer.domElement.removeEventListener("click", handleCut);
+			clickNumber = 0;
+
+			const endX = canvasX;
+			const endY = canvasY;
+
+			const dx = endX - startX;
+			const dy = endY - startY;
+			const distance = Math.sqrt(dx * dx + dy * dy);
+
+			var maxRadius =
+				(billetTopTextureCanvas.canvas.width >
+				billetTopTextureCanvas.canvas.height
+					? billetTopTextureCanvas.canvas.width / 2
+					: billetTopTextureCanvas.canvas.height / 2) * 0.25;
+
+			depthCanvas.globalCompositeOperation = "darken";
+
+			const steps = distance / 2;
+			for (let i = 0; i <= steps; i++) {
+				const t = i / steps; // Percentage along the line (0.0 to 1.0)
+				const currentX = startX + dx * t;
+				const currentY = startY + dy * t;
+
+				var gradient = depthCanvas.createRadialGradient(
+					currentX,
+					currentY,
+					0,
+					currentX,
+					currentY,
+					maxRadius,
+				);
+
+				gradient.addColorStop(0, "#000");
+				gradient.addColorStop(1, "#FFF");
+
+				depthCanvas.fillStyle = gradient;
+				depthCanvas.fillRect(
+					currentX - maxRadius,
+					currentY - maxRadius,
+					maxRadius * 2,
+					maxRadius * 2,
+				);
+			}
+		}
+	}
+
+	depthCanvas.globalCompositeOperation = "multiply";
+	updateTopTexture(billetTopTextureCanvas, depthCanvas, false);
+}
+
+window.makeCut = function makeCut() {
+	renderer.domElement.removeEventListener("click", handleCut);
+	renderer.domElement.addEventListener("click", handleCut);
 };
 
 function animate(time) {
