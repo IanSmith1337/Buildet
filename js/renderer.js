@@ -8,6 +8,8 @@ var billetWidth = 1;
 var billetHeight = 1;
 var billetDepth = 1;
 var layers = 1;
+var firstLayerColor = "#000";
+var lastLayerColor = "#000";
 
 const canvas = document.querySelector(".editor");
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
@@ -24,29 +26,26 @@ const camera = new THREE.PerspectiveCamera(
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
+const billetSideTextureCanvas = document
+	.createElement("canvas")
+	.getContext("2d");
+updateSideTexture(billetSideTextureCanvas, true);
+const billetSideTexture = new THREE.CanvasTexture(
+	billetSideTextureCanvas.canvas,
+);
+
 const billetTopTextureCanvas = document
 	.createElement("canvas")
 	.getContext("2d");
-document.body.appendChild(billetTopTextureCanvas.canvas);
 updateTopTexture(billetTopTextureCanvas, true);
 const billetTopTexture = new THREE.CanvasTexture(billetTopTextureCanvas.canvas);
 
 const billetBottomTextureCanvas = document
 	.createElement("canvas")
 	.getContext("2d");
-document.body.appendChild(billetBottomTextureCanvas.canvas);
 updateBottomTexture(billetBottomTextureCanvas, true);
 const billetBottomTexture = new THREE.CanvasTexture(
 	billetBottomTextureCanvas.canvas,
-);
-
-const billetSideTextureCanvas = document
-	.createElement("canvas")
-	.getContext("2d");
-document.body.appendChild(billetSideTextureCanvas.canvas);
-updateSideTexture(billetSideTextureCanvas, true);
-const billetSideTexture = new THREE.CanvasTexture(
-	billetSideTextureCanvas.canvas,
 );
 
 const billetMats = [
@@ -139,6 +138,7 @@ function updateSideTexture(textureCanvas, firstRun = false) {
 	var currentPos = 0;
 	for (let i = 0; i < layers; i++) {
 		textureCanvas.fillStyle = i % 2 ? "#505050" : "#a0a0a0";
+		firstLayerColor = textureCanvas.fillStyle;
 		console.log(textureCanvas.fillStyle);
 		console.log(currentPos);
 		textureCanvas.fillRect(
@@ -149,6 +149,8 @@ function updateSideTexture(textureCanvas, firstRun = false) {
 		);
 		currentPos = (textureCanvas.canvas.height / layers) * (i + 1);
 	}
+
+	lastLayerColor = textureCanvas.fillStyle;
 
 	if (!firstRun) {
 		billetSideTexture.needsUpdate = true;
@@ -158,19 +160,13 @@ function updateSideTexture(textureCanvas, firstRun = false) {
 function updateTopTexture(textureCanvas, firstRun = false) {
 	textureCanvas.canvas.width = billetWidth * 256;
 	textureCanvas.canvas.height = billetHeight * 256;
-	var currentPos = 0;
-	for (let i = 0; i < layers; i++) {
-		textureCanvas.fillStyle = "#000";
-		console.log(textureCanvas.fillStyle);
-		console.log(currentPos);
-		textureCanvas.fillRect(
-			0,
-			currentPos,
-			textureCanvas.canvas.width,
-			textureCanvas.canvas.height / layers,
-		);
-		currentPos = (textureCanvas.canvas.height / layers) * (i + 1);
-	}
+	textureCanvas.fillStyle = firstLayerColor;
+	textureCanvas.fillRect(
+		0,
+		0,
+		textureCanvas.canvas.width,
+		textureCanvas.canvas.height,
+	);
 
 	if (!firstRun) {
 		billetTopTexture.needsUpdate = true;
@@ -180,19 +176,13 @@ function updateTopTexture(textureCanvas, firstRun = false) {
 function updateBottomTexture(textureCanvas, firstRun = false) {
 	textureCanvas.canvas.width = billetWidth * 256;
 	textureCanvas.canvas.height = billetHeight * 256;
-	var currentPos = 0;
-	for (let i = 0; i < layers; i++) {
-		textureCanvas.fillStyle = "#F00";
-		console.log(textureCanvas.fillStyle);
-		console.log(currentPos);
-		textureCanvas.fillRect(
-			0,
-			currentPos,
-			textureCanvas.canvas.width,
-			textureCanvas.canvas.height / layers,
-		);
-		currentPos = (textureCanvas.canvas.height / layers) * (i + 1);
-	}
+	textureCanvas.fillStyle = lastLayerColor;
+	textureCanvas.fillRect(
+		0,
+		0,
+		textureCanvas.canvas.width,
+		textureCanvas.canvas.height,
+	);
 
 	if (!firstRun) {
 		billetBottomTexture.needsUpdate = true;
@@ -202,6 +192,8 @@ function updateBottomTexture(textureCanvas, firstRun = false) {
 window.updateBillet = function updateBillet(layerCount) {
 	layers = layerCount;
 	updateSideTexture(billetSideTextureCanvas);
+	updateTopTexture(billetTopTextureCanvas);
+	updateBottomTexture(billetBottomTextureCanvas);
 };
 
 function animate(time) {
