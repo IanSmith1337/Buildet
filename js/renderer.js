@@ -4,9 +4,9 @@ import {$} from "jquery";
 
 window.$ = $;
 
-var billetWidth = 1;
+var billetWidth = 2;
 var billetHeight = 1;
-var billetDepth = 1;
+var billetDepth = 2;
 var layers = 1;
 var firstLayerColor = "#000";
 var lastLayerColor = "#000";
@@ -53,31 +53,37 @@ const billetMats = [
 		map: billetSideTexture,
 		roughness: 0.33,
 		metalness: 0.75,
+		side: THREE.DoubleSide,
 	}),
 	new THREE.MeshStandardMaterial({
 		map: billetSideTexture,
 		roughness: 0.33,
 		metalness: 0.75,
+		side: THREE.DoubleSide,
 	}),
 	new THREE.MeshStandardMaterial({
 		map: billetTopTexture,
 		roughness: 0.33,
 		metalness: 0.75,
+		side: THREE.DoubleSide,
 	}),
 	new THREE.MeshStandardMaterial({
 		map: billetBottomTexture,
 		roughness: 0.33,
 		metalness: 0.75,
+		side: THREE.DoubleSide,
 	}),
 	new THREE.MeshStandardMaterial({
 		map: billetSideTexture,
 		roughness: 0.33,
 		metalness: 0.75,
+		side: THREE.DoubleSide,
 	}),
 	new THREE.MeshStandardMaterial({
 		map: billetSideTexture,
 		roughness: 0.33,
 		metalness: 0.75,
+		side: THREE.DoubleSide,
 	}),
 ];
 
@@ -114,9 +120,9 @@ const gridDivisions = 100;
 const grid = new THREE.GridHelper(gridSize, gridDivisions);
 scene.add(grid);
 
-camera.position.z = 2;
-camera.position.x = 2;
-camera.position.y = 2;
+camera.position.z = 3;
+camera.position.x = 3;
+camera.position.y = 3;
 
 camera.lookAt(0, 0, 0);
 
@@ -188,6 +194,26 @@ function updateBottomTexture(textureCanvas, firstRun = false) {
 		billetBottomTexture.needsUpdate = true;
 	}
 }
+
+window.drawupset = function drawupset(direction, scale) {
+	var cx = parseFloat(billet.scale.x);
+	var cy = parseFloat(billet.scale.y);
+	var cz = parseFloat(billet.scale.z);
+	var iso = Math.sqrt(scale);
+
+	console.log(cx, cy, cz);
+	if (direction == "x") {
+		billet.scale.set(cx / scale, cy * iso, cz * iso);
+	} else if (direction == "y") {
+		billet.scale.set(cx * iso, cy / scale, cz * iso);
+	} else {
+		billet.scale.set(cx * iso, cy * iso, cz / scale);
+	}
+	cx = parseFloat(billet.scale.x);
+	var cy = parseFloat(billet.scale.y);
+	var cz = parseFloat(billet.scale.z);
+	console.log(cx, cy, cz);
+};
 
 window.updateBillet = function updateBillet(layerCount) {
 	layers = layerCount;
