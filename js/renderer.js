@@ -222,6 +222,55 @@ window.updateBillet = function updateBillet(layerCount) {
 	updateBottomTexture(billetBottomTextureCanvas);
 };
 
+const depthCanvas = document.createElement("canvas").getContext("2d");
+document.body.appendChild(depthCanvas.canvas);
+depthCanvas.canvas.width = billetWidth * 256;
+depthCanvas.canvas.height = billetHeight * 256;
+depthCanvas.fillStyle = "#FFF";
+depthCanvas.fillRect(0, 0, depthCanvas.canvas.width, depthCanvas.canvas.height);
+depthCanvas.globalCompositeOperation = "multiply";
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener("click", (event) => {
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+	raycaster.setFromCamera(mouse, camera);
+	const intersects = raycaster.intersectObject(billet);
+
+	if (intersects.length > 0) {
+		const uv = intersects[0].uv;
+		const canvasX = uv.x * billetTopTextureCanvas.canvas.width;
+		const canvasY = (1 - uv.y) * billetTopTextureCanvas.canvas.height;
+
+		var maxRadius =
+			billetTopTextureCanvas.canvas.width > billetTopTextureCanvas.canvas.height
+				? billetTopTextureCanvas.canvas.width / 2
+				: billetTopTextureCanvas.canvas.height / 2;
+
+		var gradient = depthCanvas.createRadialGradient(
+			canvasX,
+			canvasY,
+			0,
+			canvasX,
+			canvasY,
+			maxRadius,
+		);
+
+		gradient.addColorStop(0, "#000");
+		gradient.addColorStop(1, "#FFF");
+
+		depthCanvas.fillStyle = gradient;
+		depthCanvas.fillRect(
+			canvasX - maxRadius,
+			canvasY - maxRadius,
+			maxRadius * 2,
+			maxRadius * 2,
+		);
+	}
+});
+
 function animate(time) {
 	if (resizeRenderer(renderer)) {
 		const canvas = renderer.domElement;
