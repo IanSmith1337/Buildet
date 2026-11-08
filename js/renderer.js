@@ -2,10 +2,12 @@ import * as THREE from "three";
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {$} from "jquery";
 
+window.$ = $;
+
 var billetWidth = 1;
 var billetHeight = 1;
 var billetDepth = 1;
-var layers = 10;
+var layers = 1;
 
 const canvas = document.querySelector(".editor");
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
@@ -22,18 +24,66 @@ const camera = new THREE.PerspectiveCamera(
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
-const billetTextureCanvas = document.createElement("canvas").getContext("2d");
-document.body.appendChild(billetTextureCanvas.canvas);
-updateTexture(billetTextureCanvas);
-const billetTexture = new THREE.CanvasTexture(billetTextureCanvas.canvas);
+const billetTopTextureCanvas = document
+	.createElement("canvas")
+	.getContext("2d");
+document.body.appendChild(billetTopTextureCanvas.canvas);
+updateTopTexture(billetTopTextureCanvas, true);
+const billetTopTexture = new THREE.CanvasTexture(billetTopTextureCanvas.canvas);
+
+const billetBottomTextureCanvas = document
+	.createElement("canvas")
+	.getContext("2d");
+document.body.appendChild(billetBottomTextureCanvas.canvas);
+updateBottomTexture(billetBottomTextureCanvas, true);
+const billetBottomTexture = new THREE.CanvasTexture(
+	billetBottomTextureCanvas.canvas,
+);
+
+const billetSideTextureCanvas = document
+	.createElement("canvas")
+	.getContext("2d");
+document.body.appendChild(billetSideTextureCanvas.canvas);
+updateSideTexture(billetSideTextureCanvas, true);
+const billetSideTexture = new THREE.CanvasTexture(
+	billetSideTextureCanvas.canvas,
+);
+
+const billetMats = [
+	new THREE.MeshStandardMaterial({
+		map: billetSideTexture,
+		roughness: 0.33,
+		metalness: 0.75,
+	}),
+	new THREE.MeshStandardMaterial({
+		map: billetSideTexture,
+		roughness: 0.33,
+		metalness: 0.75,
+	}),
+	new THREE.MeshStandardMaterial({
+		map: billetTopTexture,
+		roughness: 0.33,
+		metalness: 0.75,
+	}),
+	new THREE.MeshStandardMaterial({
+		map: billetBottomTexture,
+		roughness: 0.33,
+		metalness: 0.75,
+	}),
+	new THREE.MeshStandardMaterial({
+		map: billetSideTexture,
+		roughness: 0.33,
+		metalness: 0.75,
+	}),
+	new THREE.MeshStandardMaterial({
+		map: billetSideTexture,
+		roughness: 0.33,
+		metalness: 0.75,
+	}),
+];
 
 const billetGeo = new THREE.BoxGeometry(billetWidth, billetHeight, billetDepth);
-const billetMat = new THREE.MeshStandardMaterial({
-	map: billetTexture,
-	roughness: 0.33,
-	metalness: 0.75,
-});
-const billet = new THREE.Mesh(billetGeo, billetMat);
+const billet = new THREE.Mesh(billetGeo, billetMats);
 scene.add(billet);
 
 const editorSkyLightColor = "#ffffff";
@@ -83,12 +133,12 @@ function resizeRenderer(renderer) {
 	return needResize;
 }
 
-function updateTexture(textureCanvas) {
+function updateSideTexture(textureCanvas, firstRun = false) {
 	textureCanvas.canvas.width = billetWidth * 256;
 	textureCanvas.canvas.height = billetHeight * 256;
 	var currentPos = 0;
 	for (let i = 0; i < layers; i++) {
-		textureCanvas.fillStyle = i % 2 ? "#505050" : "#FFF";
+		textureCanvas.fillStyle = i % 2 ? "#505050" : "#a0a0a0";
 		console.log(textureCanvas.fillStyle);
 		console.log(currentPos);
 		textureCanvas.fillRect(
@@ -100,8 +150,59 @@ function updateTexture(textureCanvas) {
 		currentPos = (textureCanvas.canvas.height / layers) * (i + 1);
 	}
 
-	textureCanvas.needsUpdate = true;
+	if (!firstRun) {
+		billetSideTexture.needsUpdate = true;
+	}
 }
+
+function updateTopTexture(textureCanvas, firstRun = false) {
+	textureCanvas.canvas.width = billetWidth * 256;
+	textureCanvas.canvas.height = billetHeight * 256;
+	var currentPos = 0;
+	for (let i = 0; i < layers; i++) {
+		textureCanvas.fillStyle = "#000";
+		console.log(textureCanvas.fillStyle);
+		console.log(currentPos);
+		textureCanvas.fillRect(
+			0,
+			currentPos,
+			textureCanvas.canvas.width,
+			textureCanvas.canvas.height / layers,
+		);
+		currentPos = (textureCanvas.canvas.height / layers) * (i + 1);
+	}
+
+	if (!firstRun) {
+		billetTopTexture.needsUpdate = true;
+	}
+}
+
+function updateBottomTexture(textureCanvas, firstRun = false) {
+	textureCanvas.canvas.width = billetWidth * 256;
+	textureCanvas.canvas.height = billetHeight * 256;
+	var currentPos = 0;
+	for (let i = 0; i < layers; i++) {
+		textureCanvas.fillStyle = "#F00";
+		console.log(textureCanvas.fillStyle);
+		console.log(currentPos);
+		textureCanvas.fillRect(
+			0,
+			currentPos,
+			textureCanvas.canvas.width,
+			textureCanvas.canvas.height / layers,
+		);
+		currentPos = (textureCanvas.canvas.height / layers) * (i + 1);
+	}
+
+	if (!firstRun) {
+		billetBottomTexture.needsUpdate = true;
+	}
+}
+
+window.updateBillet = function updateBillet(layerCount) {
+	layers = layerCount;
+	updateSideTexture(billetSideTextureCanvas);
+};
 
 function animate(time) {
 	if (resizeRenderer(renderer)) {
@@ -109,7 +210,6 @@ function animate(time) {
 		camera.aspect = canvas.clientWidth / canvas.clientHeight;
 		camera.updateProjectionMatrix();
 	}
-
 	controls.update();
 	renderer.render(scene, camera);
 }
