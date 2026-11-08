@@ -37,7 +37,7 @@ const billetSideTexture = new THREE.CanvasTexture(
 const billetTopTextureCanvas = document
 	.createElement("canvas")
 	.getContext("2d");
-updateTopTexture(billetTopTextureCanvas, true);
+updateTopTexture(billetTopTextureCanvas, null, true);
 const billetTopTexture = new THREE.CanvasTexture(billetTopTextureCanvas.canvas);
 
 const billetBottomTextureCanvas = document
@@ -163,16 +163,42 @@ function updateSideTexture(textureCanvas, firstRun = false) {
 	}
 }
 
-function updateTopTexture(textureCanvas, firstRun = false) {
-	textureCanvas.canvas.width = billetWidth * 256;
-	textureCanvas.canvas.height = billetHeight * 256;
-	textureCanvas.fillStyle = firstLayerColor;
-	textureCanvas.fillRect(
-		0,
-		0,
-		textureCanvas.canvas.width,
-		textureCanvas.canvas.height,
-	);
+function updateTopTexture(textureCanvas, depthCanvas, firstRun = false) {
+	var width = billetWidth * 256;
+	var height = billetHeight * 256;
+	textureCanvas.canvas.width = width;
+	textureCanvas.canvas.height = height;
+
+	if (depthCanvas != null) {
+		const data = depthCanvas.getImageData(0, 0, width, height);
+		const pixels = data.data;
+
+		const dark = [80, 80, 80]; // #505050
+		const light = [160, 160, 160]; // #a0a0a0
+
+		for (let i = 0; i < pixels.length; i += 4) {
+			var currentValue = pixels[i];
+
+			let layerIndex = Math.floor(((255 - currentValue) / 255) * layers);
+
+			if (layerIndex >= layers) {
+				layerIndex = layers - 1;
+			}
+
+			const pixelColor = layerIndex % 2 === 0 ? dark : light;
+
+			// 4. Overwrite the pixel data in memory with the Damascus colors
+			pixels[i] = pixelColor[0]; // Red
+			pixels[i + 1] = pixelColor[1]; // Green
+			pixels[i + 2] = pixelColor[2]; // Blue
+			pixels[i + 3] = 255; // Alpha (fully opaque)
+		}
+
+		textureCanvas.putImageData(data, 0, 0);
+	} else {
+		textureCanvas.fillStyle = firstLayerColor;
+		textureCanvas.fillRect(0, 0, width, height);
+	}
 
 	if (!firstRun) {
 		billetTopTexture.needsUpdate = true;
@@ -232,7 +258,9 @@ depthCanvas.globalCompositeOperation = "multiply";
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-window.addEventListener("click", (event) => {
+function handleDivot(event) {
+	renderer.domElement.removeEventListener("click", handleDivot);
+
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -269,7 +297,14 @@ window.addEventListener("click", (event) => {
 			maxRadius * 2,
 		);
 	}
-});
+
+	updateTopTexture(billetTopTextureCanvas, depthCanvas, false);
+}
+
+window.makeCut = function makeCut() {
+	renderer.domElement.removeEventListener("click", handleDivot);
+	renderer.domElement.addEventListener("click", handleDivot);
+};
 
 function animate(time) {
 	if (resizeRenderer(renderer)) {
