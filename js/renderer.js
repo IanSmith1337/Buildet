@@ -252,7 +252,6 @@ window.updateBillet = function updateBillet(layerCount) {
 };
 
 const depthCanvas = document.createElement("canvas").getContext("2d");
-document.body.appendChild(depthCanvas.canvas);
 depthCanvas.canvas.width = billetWidth * 256;
 depthCanvas.canvas.height = billetHeight * 256;
 depthCanvas.fillStyle = "#FFF";
